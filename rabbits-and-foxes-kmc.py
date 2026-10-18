@@ -6,9 +6,9 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.19.1
+#       jupytext_version: 1.19.6
 #   kernelspec:
-#     display_name: Python 3 (ipykernel)
+#     display_name: chme5137
 #     language: python
 #     name: python3
 # ---
@@ -108,6 +108,7 @@ plt.ylabel("population")
 plt.legend()
 plt.show()
 
+
 # %% [markdown]
 # ## 1. One trajectory
 #
@@ -119,7 +120,69 @@ plt.show()
 # happens, and how many minutes pass?
 
 # %% [markdown]
-# *Answer:*
+# *Answer:
+#
+# **Variables:**
+#
+# $r_1 = k_1$ $R$ $(Rabbit  Birth)$
+#
+# $r_2 = k_2$ $RF$ $(Rabbit Death)$
+#
+# $r_3 = k_3$ $RF$ $(Fox Birth)$
+#
+# $r_4 = k_4$ $F$ $(Fox Death)$
+#
+# $Q_k = r_1 + r_2 + r_3 + r_4$ $(Total Rate)$
+#
+# $u$ is a random number used to find the event $i$ that satisfies $R_{k,i-1}$ $<$ $uQ_k$ $\le R_{ki}$
+#
+# $u'$ is a random number used to update time. $\Delta t$ $=$ $Q_{k}^{-1}$ $ln(1/u')$
+#
+# **Hand Calculation**
+#
+# $R = 400$
+#
+# $F = 200$
+#
+# $u = 0.5$
+#
+# $u' = 0.3$
+#
+# $k_1 = 0.015$ $day ^{-1}$
+#
+# $k_2 = 0.00004$ $day ^{-1}$ $foxes ^{-1}$
+#
+# $k_3 = 0.0004$ $day ^{-1}$ $rabbits ^{-1}$
+#
+# $k_4 = 0.04$ $day ^{-1}$
+#
+# $r_1 (Rabbit Birth) = 0.015$ $\times$ $400 = 6$ $days ^{-1}$
+#
+# $r_2 (Rabbit Death) = 0.00004$ $\times$ $400$ $\times$ $200 = 3.2$ $days ^{-1}$
+#
+# $r_3 (Fox Birth) = 0.0004$ $\times$ $400$ $\times$ $200 = 32$ $days ^{-1}$
+#
+# $r_4 (Fox Death) = 0.04$ $\times$ $200 = 8$ $days ^{-1}$
+#
+# $Q = 6 + 3.2 + 32 + 8 = 49.2$ $days ^{-1}$
+#
+# $Event$ $1$ $Interval = [0, 6)$
+#
+# $Event$ $2$ $Interval = [6, 9.2)$
+#
+# $Event$ $3$ $Interval = [9.2, 41.2)$
+#
+# $Event$ $4$ $Interval = [41.2, 49.2)$
+#
+# $uQ = 0.5$ $\times$ $49.2 = 24.6$
+#
+# Event 3 happens as 14.76 falls between 9.2 and 41.2
+#
+# $\Delta t$ $=$ $Q_{k}^{-1}$ $ln(1/u')$
+#
+# $\Delta t$ $=$ $(1/49.2)$ $\times$ $ln(1/0.3)$
+#
+# $\Delta t$ $=$ $0.024$ $days$ $= 35.24$ $minutes$*
 
 # %% [markdown]
 # **(b) The function.** Write
@@ -139,9 +202,69 @@ plt.show()
 # with different seeds. How does a KMC trajectory differ from the ODE solution?
 
 # %%
+def kmc(R0, F0, t_end, rng):
+    t = 0
+    R = R0
+    F = F0
+    t_1 = [t]
+    R_1 = [R]
+    F_1 = [F]
+
+    while t < t_end:
+        r1 = k1 * R
+        r2 = k2 * R * F
+        r3 = k3 * R * F
+        r4 = k4 * F
+
+        Q = r1 + r2 + r3 + r4
+        if Q == 0:
+            break
+        u = rng.random()
+        x = u * Q
+        if x < r1:
+            R = R + 1
+        elif x < r1 + r2:
+            R = R - 1
+        elif x < r1 + r2 + r3:
+            F = F + 1
+        else:
+            F = F - 1
+
+        u_prime = rng.random()
+        dt = -np.log(u_prime) / Q
+        t = t + dt
+
+        if R < 0 or F < 0:
+            raise ValueError(f"Negative Population: R = {R}, F = {F}")
+
+        t_1.append(t)
+        R_1.append(R)
+        F_1.append(F)
+
+    return np.array(t_1), np.array(R_1), np.array(F_1)
+
+rng = np.random.default_rng(42)
+
+t_i = time.perf_counter()
+times, rabbits, foxes = kmc(R0, F0, t_end, rng)
+t_f = time.perf_counter()
+
+time_taken = t_f - t_i
+print(f"Time taken for KMC simulation = {time_taken:.4f} seconds")
+print(f"Number of events = {len(times) - 1}")
+
+plt.step(times, rabbits, where='post', label="Rabbits (KMC)")
+plt.step(times, foxes, where='post', label="Foxes (KMC)")
+plt.plot(t_ode, R_ode, "--", label="Rabbits (ODE)")
+plt.plot(t_ode, F_ode, "--", label="Foxes (ODE)")
+plt.xlabel("Time (Days)")
+plt.ylabel("Population")
+plt.legend()
+plt.show()
+
 
 # %% [markdown]
-# *Answer:*
+# *Answer: For seed 42, the simulation took 23,328 events and finished in about 0.1027 seconds. When comparing KMC to the ODE, the biggest difference is that KMC moves in discrete integer steps of plus or minus one instead of smooth curves, so the populations never have fractional animals. Because each event happens randomly, the timing and height of the peaks drift away from the ODE curve. In this run, the first fox peak was slightly higher and the second peak happened earlier and was much smaller. Testing other seeds also shows that foxes can easily die out completely when their numbers drop very low in the trough. In the ODE, foxes drop to around 1.6 and always bounce back, but in KMC, once the fox count hits zero, no more foxes can ever be born, leaving the rabbits to grow without any predators.*
 
 # %% [markdown]
 # ## 2. Many trajectories, and where they end up
