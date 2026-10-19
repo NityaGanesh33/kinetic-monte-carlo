@@ -124,15 +124,15 @@ plt.show()
 #
 # **Variables:**
 #
-# $r_1 = k_1$ $R$ $(Rabbit  Birth)$
+# $r_1 = k_1$ $R$ $(Rabbit$ $Birth)$
 #
-# $r_2 = k_2$ $RF$ $(Rabbit Death)$
+# $r_2 = k_2$ $RF$ $(Rabbit$ $Death)$
 #
-# $r_3 = k_3$ $RF$ $(Fox Birth)$
+# $r_3 = k_3$ $RF$ $(Fox$ $Birth)$
 #
-# $r_4 = k_4$ $F$ $(Fox Death)$
+# $r_4 = k_4$ $F$ $(Fox$ $Death)$
 #
-# $Q_k = r_1 + r_2 + r_3 + r_4$ $(Total Rate)$
+# $Q_k = r_1 + r_2 + r_3 + r_4$ $(Total$ $Rate)$
 #
 # $u$ is a random number used to find the event $i$ that satisfies $R_{k,i-1}$ $<$ $uQ_k$ $\le R_{ki}$
 #
@@ -156,11 +156,11 @@ plt.show()
 #
 # $k_4 = 0.04$ $day ^{-1}$
 #
-# $r_1 (Rabbit Birth) = 0.015$ $\times$ $400 = 6$ $days ^{-1}$
+# $r_1 (Rabbit$ $Birth)$ $= 0.015$ $\times$ $400 = 6$ $days ^{-1}$
 #
-# $r_2 (Rabbit Death) = 0.00004$ $\times$ $400$ $\times$ $200 = 3.2$ $days ^{-1}$
+# $r_2 (Rabbit$ $Death)$ $= 0.00004$ $\times$ $400$ $\times$ $200 = 3.2$ $days ^{-1}$
 #
-# $r_3 (Fox Birth) = 0.0004$ $\times$ $400$ $\times$ $200 = 32$ $days ^{-1}$
+# $r_3 (Fox$ $Birth)$ $= 0.0004$ $\times$ $400$ $\times$ $200 = 32$ $days ^{-1}$
 #
 # $r_4 (Fox Death) = 0.04$ $\times$ $200 = 8$ $days ^{-1}$
 #
@@ -291,6 +291,7 @@ plt.ylabel("Foxes Population")
 plt.legend()
 plt.show()
 
+
 # %% [markdown]
 # *Answer:
 #
@@ -321,9 +322,64 @@ plt.show()
 # call "the second peak", if you can.
 
 # %%
+def second_peak(times, foxes):
+    x = (205 < times ) & (times < 595)
+
+    t_1 = times[x]
+    f_1 = foxes[x]
+
+    if len(f_1) == 0:
+        return None
+
+    y = np.argmax(f_1)
+    fox_max = f_1[y]
+
+    if fox_max > 100:
+        return t_1[y], fox_max
+    else:
+        return None
+
+rng = np.random.default_rng(30)
+peak_time = []
+peak_height = []
+
+for i in range(100):
+    times, rabbits, foxes = kmc(R0, F0, t_end, rng)
+    result = second_peak(times, foxes)
+    if result is not None:
+        t_2, f_2 = result
+        peak_time.append(t_2)
+        peak_height.append(f_2)
+
+peak_time = np.array(peak_time)
+peak_height = np.array(peak_height)
+
+print(f"Fraction with second peak: {len(peak_time) / 100:.2f}")
+print(f"Peak Time: mean = {np.mean(peak_time):.1f}, median = {np.median(peak_time):.1f}, iqr = {np.percentile(peak_time, [25, 75])}")
+print(f"Peak Height: mean = {np.mean(peak_height):.1f}, median = {np.median(peak_height):.1f}, iqr = {np.percentile(peak_height, [25, 75])}")
+
+plt.figure()
+plt.hist(peak_time, bins=15, edgecolor = "black")
+plt.axvline(428, color="red", linestyle="--", label="ODE (428 Day)")
+plt.xlabel("Peak Time (Days)")
+plt.ylabel("Count")
+plt.title("Distribution of Second Fox Peak Times")
+plt.legend()
+plt.show()
+
+plt.figure()
+plt.hist(peak_height, bins=15, edgecolor="black")
+plt.axvline(2804, color="red", linestyle="--", label="ODE (2804 Foxes)")
+plt.xlabel("Peak Height (Foxes)")
+plt.ylabel("Count")
+plt.title("Distribution of Second Fox Peak Heights")
+plt.legend()
+plt.show()
 
 # %% [markdown]
-# *Answer:*
+# *Answer: In the ODE, the second peak occurs at day 428 with a height of 2804 foxes. In KMC, the surviving peaks arrive a bit earlier, median (~400 days) and are lower on average (median ~2283). The surviving trajectories depend on survival through the trough. If the fox population drops to a few individuals rather than the fractional ~1.6 foxes of the ODE, rabbits can grow faster without any predatory threat. A rapid rabbit explosion leads to earlier fox recovery, while variations in predation timing often cut off the peak before reaching the deterministic height.
+#
+# The peak definition just takes whatever the highest point is between days 205 and 595 as long as it gets over 100. I think this mostly messes up because 100 foxes isn't really that many, so sometimes a run that is almost dead just gets a tiny bump over 100 and it counts that as the second peak even though it wasn't a real comeback. Also, if the curve is still going up at the very end around day 590, it might just pick that spot because it ran out of time instead of waiting for the real peak.*
 
 # %% [markdown]
 # ## 4. How many runs are enough?
