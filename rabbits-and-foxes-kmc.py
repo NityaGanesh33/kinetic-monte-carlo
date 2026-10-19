@@ -396,9 +396,42 @@ plt.show()
 #   ranges, to a precision you can justify. Say how you justified it.
 
 # %%
+runs = [100, 300, 1000, 3000]
+peak_t = []
+peak_h = []
+rng = np.random.default_rng(42)
+
+for i in range(1, 3001):
+    times, rabbits, foxes = kmc(R0, F0, t_end, rng)
+    z = second_peak(times, foxes)
+    if z is not None:
+        peak_t.append(z[0])
+        peak_h.append(z[1])
+
+    if i in runs:
+        n = len(peak_t)
+
+        mean_t = np.mean(peak_t)
+        s_t = np.std(peak_t, ddof=1)
+        se_t = s_t / np.sqrt(n)
+        iqr_t = np.percentile(peak_t, [25, 75])
+
+        mean_h = np.mean(peak_h)
+        s_h = np.std(peak_h, ddof=1)
+        se_h = s_h / np.sqrt(n)
+        iqr_h = np.percentile(peak_h, [25, 75])
+
+        print(f"--- Runs: {i} (n = {n} peaks detected) ---")
+        print(f"Peak Time:   mean = {mean_t:.2f} ± {se_t:.2f} days,  iqr = [{iqr_t[0]:.1f}, {iqr_t[1]:.1f}]")
+        print(f"Peak Height: mean = {mean_h:.1f} ± {se_h:.1f} foxes, iqr = [{iqr_h[0]:.1f}, {iqr_h[1]:.1f}]\n")
 
 # %% [markdown]
-# *Answer:*
+# *Answer:
+# a) When we run more trajectories from 100 up to 3000, the average values for the second peak time and peak height don't really jump all over the place, but they stay pretty much around 401 days and 2340 foxes. Doing only 100 runs has more random noise, but once you do 3000 runs it feels much smoother and stays centered.
+#
+# b) The standard error gets smaller when you increase the runs because of the formula. Since the number of peaks $n$ is on the bottom, having more runs divides the spread by a bigger number. When we went from about 32 peaks at 100 runs to almost 1000 peaks at 3000 runs, the error dropped down from like 4.7 days to around 1 day, and the height error dropped from around 96 foxes to about 18 foxes. So it scales down as $n$ goes up.
+#
+# c) Looking at the 3000-run result, we can probably write the peak time as about $401 \pm 1$ days and the peak height as around $2343 \pm 19$ foxes. The IQRs are roughly 379 to 420 days and 1939 to 2685 foxes. We can justify rounding the time to the nearest whole number because the error is around 1 day, so having two decimal places doesn't make much sense when the noise changes the day anyway. For the height, the error is around 18 foxes, so reporting it to the nearest single fox is probably too specific.*
 
 # %% [markdown]
 # ## 5. How likely is it that the foxes die out?
