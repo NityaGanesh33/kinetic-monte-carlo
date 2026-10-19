@@ -447,9 +447,45 @@ for i in range(1, 3001):
 #   happen?
 
 # %%
+rng = np.random.default_rng(42)
+N = 3000
+ext = 0
+ext_times = []
+
+for i in range(N):
+    times, rabbits, foxes = kmc(R0, F0, t_end, rng)
+    if foxes[-1] == 0:
+        ext += 1
+        t_ext = times[foxes == 0][0]
+        ext_times.append(t_ext)
+
+p = ext / N
+se_p = np.sqrt(p * (1 - p) / N)
+
+N_1pct = p * (1 - p) / (0.01**2)
+N_pt1pct = p * (1 - p) / (0.001**2)
+
+print(f"Runs for ±1%:   {N_1pct:.0f}")
+print(f"Runs for ±0.1%: {N_pt1pct:.0f}")
+
+print(f"Total runs: {N}")
+print(f"Extinct runs: {ext}")
+print(f"Extinction probability (p): {p:.4f} ± {se_p:.4f} ({p:.2%} ± {se_p:.2%})")
+
+plt.figure()
+plt.hist(ext_times, bins=25, edgecolor='black')
+plt.xlabel("Extinction Time (Days)")
+plt.ylabel("Number of Trajectories")
+plt.title("Distribution of Fox Extinction Times")
+plt.show()
 
 # %% [markdown]
-# *Answer:*
+# *Answer:
+# a) Out of the 3000 runs, foxes died out in 2075 runs, so the extinction probability is about $0.6917 \pm 0.0084$ (around $69.2\% \pm 0.8\%$).
+#
+# b) To get the error within $\pm 1\%$ we would need around 2,133 runs, and to get it within $\pm 0.1\%$ it jumps all the way up to about 213,264 runs because dividing by a smaller squared decimal makes the required number huge.
+#
+# c) Looking at the histogram, almost all the extinctions happen between days 230 and 320, especially around day 260. That makes sense because right after the foxes eat all the rabbits, the rabbits drop close to zero, so the foxes run out of food and starve to death during that first big crash. There is also a tiny second bump near day 580 or 600 where a few runs that survived the first cycle end up crashing when the second wave goes down.*
 
 # %% [markdown]
 # ## 6. Your project
