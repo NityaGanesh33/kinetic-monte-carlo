@@ -279,9 +279,26 @@ plt.show()
 #   task 5 of the `solve_ivp` homework is relevant.)
 
 # %%
+rng = np.random.default_rng(33)
+
+for i in range(20):
+    times, rabbits, foxes = kmc(R0, F0, t_end, rng)
+    plt.step(times, foxes, where="post", lw=0.5)
+    
+plt.plot(t_ode, F_ode, "k--", lw=1, label="Foxes (ODE)")
+plt.xlabel("Time (Days)")
+plt.ylabel("Foxes Population")
+plt.legend()
+plt.show()
 
 # %% [markdown]
-# *Answer:*
+# *Answer:
+#
+# a) All 20 trajectories closely follow the ODE during the first cycle because populations are large, keeping fluctuations to a small amount. They spread apart significantly during the deep trough days 150–300 when populations drop close to single digits, causing large stochastic variations in the timing and amplitude of the second peak.
+#
+# b) If the foxes reach 0 (F = 0), then the possibility of both the events fox birth and fox death happening will be 0. The rabbits will then have no threats and they grow exponentially. If the rabbits reach 0 (R = 0), then the events rabbit birth, rabbit death and fox birth will become 0. The remaining foxes will have no more food and can only die through the event fox death until both species reach 0.
+#
+# c) Foxes die out in the trough around days 180 - 300. In this region, rabbits are nearly depleted, so the fox birth rate drops close to zero while fox mortality continues. Because the population drops to single digits (the ODE falls to around 1.6), random deaths can easily eliminate the final remaining individuals before rabbits recover.*
 
 # %% [markdown]
 # ## 3. The second fox peak
