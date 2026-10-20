@@ -498,7 +498,7 @@ plt.show()
 # good enough?
 
 # %% [markdown]
-# *Answer:*
+# *Answer: In wafer wet cleaning, we care a lot about removing tiny leftover residue and small contaminant particles from the surface. A regular continuum model like an ODE or PDE assumes the residue is just a smooth concentration that spreads out and washes away gradually. But when the wafer is almost completely clean, we aren't dealing with a smooth concentration anymore, we only have a few isolated, discrete particles left on a whole die. An ODE might say something like "99.9% clean" or predict an average residue concentration of 0.001, but in real manufacturing, a single particle that gets stuck or fails to detach is enough to ruin the chip. A continuum model averages that out and misses the chance of having that one killer defect. To model this properly, we would need to switch from smooth rate equations to something discrete like Kinetic Monte Carlo, where we track individual particles and treat their detachment or sticking as random probabilistic events.*
 
 # %% [markdown]
 # ## Stretch problems
